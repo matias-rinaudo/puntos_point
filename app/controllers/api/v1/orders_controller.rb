@@ -6,7 +6,7 @@ module Api
                                 end_date: params[:to],
                                 category_id: params[:category_id],
                                 customer_id: params[:customer_id],
-                                creator_id: params[:creator_id])
+                                creator_id: params[:creator_id]).paginate(page: params[:page], per_page: 10)
 
         render json: orders.as_json
       end
@@ -17,7 +17,7 @@ module Api
                                                     category_id: params[:category_id],
                                                     customer_id: params[:customer_id],
                                                     creator_id: params[:creator_id],
-                                                    granularity: params[:granularity] || 'day')
+                                                    granularity: params[:granularity] || 'day').paginate(page: params[:page], per_page: 10)
 
         render json: orders.as_json
       end

@@ -141,6 +141,7 @@ GEM
     tzinfo (0.3.62)
     warden (1.2.7)
       rack (>= 1.0)
+    will_paginate (3.2.1)
 
 PLATFORMS
   ruby
@@ -159,6 +160,7 @@ DEPENDENCIES
   redis (~> 3.2.2)
   rspec-rails (~> 2.14)
   sidekiq (~> 2.14)
+  will_paginate (~> 3.0)
 
 BUNDLED WITH
    1.17.3
