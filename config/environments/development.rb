@@ -38,4 +38,5 @@ Code::Application.configure do
   config.action_mailer.default_url_options = { host: 'web', port: 5432 }
   config.action_controller.perform_caching = true
   config.cache_store = :memory_store, { size: 64.megabytes }
+  config.active_job.queue_adapter = :sidekiq
 end

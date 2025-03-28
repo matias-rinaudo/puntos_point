@@ -68,7 +68,5 @@ module Code
           methods: [:get, :post, :options, :put, :delete]
       end
     end
-
-    config.active_job.queue_adapter = :sidekiq
   end
 end
