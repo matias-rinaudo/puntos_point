@@ -1,0 +1,73 @@
+version: '3'
+services:
+  db:
+    image: postgres:11.17-bullseye 
+    ports:
+      - "5432:5432"   # Change to another available port
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "puntos_point_app_development"
+      POSTGRES_PASSWORD: "sebastian10"  # Ensure this matches what is in database.yml
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - ./db:/code
+
+  redis:
+    image: 'redis'
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bundle exec rails s
+    entrypoint: ["./docker-entrypoint.sh"]
+    volumes:
+      - .:/code
+      - bundle_cache:/bundle_cache
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BUNDLE_PATH=/bundle_cache
+    tty: true
+    stdin_open: true
+
+  bundle_cache:
+    image: busybox
+    volumes:
+      - bundle_cache:/bundle_cache
+
+  sidekiq:
+    depends_on:
+      - db
+      - redis
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bundle exec sidekiq -C config/sidekiq_config.yml
+    entrypoint: ["./docker-entrypoint.sh"]
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BUNDLE_PATH=/bundle_cache
+    volumes:
+      - '.:/code'
+      - bundle_cache:/bundle_cache
+
+volumes:
+  bundle_cache:
+
+# Script dump and restore AWS RDS to docker postgres container.
+#
+# CONTAINER_PG_ID="$(docker container ls -qf 'name=<container_name>')"
+# docker exec -it $CONTAINER_PG_ID bash
+#
+# # Within container bash:
+# RDS_INSTANCE_NAME="<rds_instance_name>"
+# RDS_DB_HOST="<rds_db_host>"
+# RDS_DB_USERNAME="<rds_db_username>"
+# RDS_DB_NAME="<rds_db_name>"
+#
+# pg_dump --host $RDS_DB_HOST --username $RDS_DB_USERNAME --verbose --clean --no-owner --no-acl --format=c $RDS_DB_NAME > ./$RDS_INSTANCE_NAME.sql
+# pg_restore --verbose --host db --username postgres --clean --no-owner --no-acl --dbname myapp_development ./$RDS_INSTANCE_NAME.sql
