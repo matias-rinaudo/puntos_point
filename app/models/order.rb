@@ -4,7 +4,7 @@ class Order < ActiveRecord::Base
   belongs_to :customer, class_name: 'User', foreign_key: 'customer_id'
   belongs_to :product
 
-  validates :product_id, :customer_id, :quantity, :total, presence: true
+  validates :product_id, :customer_id, :quantity, presence: true
   validates :quantity, numericality: { greater_than: 0 }
 
   before_save :set_total
