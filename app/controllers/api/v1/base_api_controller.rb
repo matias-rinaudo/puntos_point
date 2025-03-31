@@ -7,39 +7,39 @@ module Api
 
       private
 
-      # Authenticate the request by verifying JWT token
       def authenticate_request
         header = request.headers['Authorization']
+        Rails.logger.info "Extracted Token: #{header}"  # DEBUG
 
-        # Log the Authorization header for debugging
-        Rails.logger.debug("Authorization Header: #{header}")
-
-        # Ensure the Authorization header is present and starts with 'Bearer '
-        if header.present? && header.starts_with?('Bearer ')
-          token = header.split(' ').last
-
-          # Log the token to ensure it's correctly extracted
-          Rails.logger.debug("Extracted Token: '#{token}'")
-
-          # Guard against an empty token
-          if token.blank?
-            render json: { error: 'Token is missing' }, status: :unauthorized and return
-          end
-
-          # Decode the JWT token
-          decoded = JsonWebToken.decode(token)
-
-          if decoded
-            @current_user = User.find_by(id: decoded[:user_id])
-          else
-            render json: { error: 'Invalid token' }, status: :unauthorized and return
-          end
-        else
-          render json: { error: 'Missing or malformed token' }, status: :unauthorized and return
+        if header.blank?
+          Rails.logger.error 'Missing Authorization header'
+          render json: { error: 'Missing token' }, status: :unauthorized and return
         end
 
-        # Ensure the user is authenticated
-        render json: { error: 'Not Authorized' }, status: :unauthorized unless @current_user
+        token = header.split(' ').last
+        Rails.logger.info "Token: #{token}"  # DEBUG
+
+        if token.blank?
+          Rails.logger.error 'Token is missing'
+          render json: { error: 'Invalid token' }, status: :unauthorized and return
+        end
+
+        decoded_token = JsonWebToken.decode(token)
+        Rails.logger.info "Decoded Token: #{decoded_token.inspect}"  # DEBUG
+
+        if decoded_token.nil? || decoded_token['user_id'].nil?
+          Rails.logger.error 'Invalid token or user_id missing'
+          render json: { error: 'Invalid token' }, status: :unauthorized and return
+        end
+
+        @current_user = User.find_by_id(decoded_token['user_id'])
+
+        Rails.logger.info "User class: #{@current_user.email}"
+
+        if @current_user.nil?
+          Rails.logger.error 'User not found for given token'
+          render json: { error: 'Invalid token' }, status: :unauthorized and return
+        end
       end
     end
   end

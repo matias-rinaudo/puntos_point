@@ -15,3 +15,5 @@ gem 'redis', '~> 3.2.2'
 gem 'sidekiq', '~> 2.14'
 gem 'will_paginate', '~> 3.0'
 gem 'rake', '< 11.0'
+gem 'pry', '~> 0.10.4'
+

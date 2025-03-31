@@ -7,6 +7,9 @@ class Order < ActiveRecord::Base
   validates :product_id, :customer_id, :quantity, presence: true
   validates :quantity, numericality: { greater_than: 0 }
 
+  scope :by_customer_id, ->(customer_id) { where(customer_id: customer_id) }
+  scope :created_at_range, ->(start_date, end_date) { where(created_at: start_date.beginning_of_day..end_date.end_of_day) }
+
   before_save :set_total
   after_create :send_notification_to_admins
   after_commit :clear_cache, on: [:create, :update, :destroy]
@@ -23,7 +26,7 @@ class Order < ActiveRecord::Base
     Rails.cache.fetch(cache_key, expires_in: 12.hours) do
       orders = Order.joins(:product, :customer, product: :categories)
 
-      orders = orders.where(created_at: start_date.beginning_of_day..end_date.end_of_day) if start_date.present? && end_date.present?
+      orders = orders.created_at_range(start_date, end_date) if start_date.present? && end_date.present?
       orders = orders.where(categories: { id: category_id }) if category_id.present?
       orders = orders.by_customer_id(customer_id) if customer_id.present?
       orders = orders.where(products: { creator_id: creator_id }) if creator_id.present?
@@ -73,14 +76,14 @@ class Order < ActiveRecord::Base
     end
   end
 
+  private
+
   def set_total
     self.total = product.price * quantity
   end
-
-  private
-
+  
   def send_notification_to_admins
-    AdminMailer.first_purchase_notification(self.product).deliver if Order.where(product_id: self.product.id).count == 1
+    AdminMailer.first_purchase_notification(self.product).deliver_now if Order.where(product_id: self.product.id).count == 1
   end
 
   def clear_cache

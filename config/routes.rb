@@ -3,7 +3,6 @@ Code::Application.routes.draw do
   namespace :api do
     namespace :v1 do
       post 'auth/login', to: 'auth#login'
-      post 'auth/logout', to: 'auth#logout'
       get 'products/most_purchased_by_category', to: 'products#most_purchased_by_category'
       get 'products/top_revenue', to: 'products#top_revenue_products'
       get 'orders', to: 'orders#index'
