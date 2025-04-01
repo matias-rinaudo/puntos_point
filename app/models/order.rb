@@ -83,7 +83,7 @@ class Order < ActiveRecord::Base
   end
   
   def send_notification_to_admins
-    AdminMailer.first_purchase_notification(self.product).deliver_now if Order.where(product_id: self.product.id).count == 1
+    AdminMailer.first_purchase_notification(self.product).deliver if Order.where(product_id: self.product.id).count == 1
   end
 
   def clear_cache
