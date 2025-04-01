@@ -1,6 +1,8 @@
 module Api
   module V1
     class OrdersController < Api::V1::BaseApiController
+      before_filter :authorize_admin, only: [:index, :by_granularity]
+
       def index
         orders = Order.filtered(start_date: params[:from],
                                 end_date: params[:to],
@@ -17,7 +19,7 @@ module Api
                                                     category_id: params[:category_id],
                                                     customer_id: params[:customer_id],
                                                     creator_id: params[:creator_id],
-                                                    granularity: params[:granularity] || 'day').paginate(page: params[:page], per_page: 10)
+                                                    granularity: params[:granularity])
 
         render json: orders.as_json
       end

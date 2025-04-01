@@ -9,8 +9,6 @@ class Product < ActiveRecord::Base
   validates :name, :price, presence: true
   validates :price, numericality: { greater_than: 0 }
 
-  after_commit :clear_cache, on: [:create, :update, :destroy]
-
   def self.top_purchased_by_category
     products = Rails.cache.fetch("top_purchased_by_category", expires_in: 12.hours) do
       Product.joins(:orders, :categories)
@@ -28,12 +26,5 @@ class Product < ActiveRecord::Base
              .order('categories.id, total_revenue DESC')
              .limit(3)
     end
-  end
-
-  private
-
-  def clear_cache
-    Rails.cache.delete_matched("top_revenue_by_category*")
-    Rails.cache.delete_matched("top_purchased_by_category*")
   end
 end

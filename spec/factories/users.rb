@@ -1,8 +1,8 @@
 FactoryGirl.define do
   factory :user do
-    email 'user@email.com'
-    password 'password123'
-    password_confirmation 'password123'
+    email 'matias@admin.com'
+    password 'password123*'
+    password_confirmation 'password123*'
     remember_me false
 
     association :role, factory: :role

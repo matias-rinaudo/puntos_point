@@ -1,3 +1,6 @@
+require 'spec_helper'
+require 'rails/all'
+
 # spec/rails_helper.rb
 RSpec.configure do |config|
   config.before(:suite) do
@@ -15,4 +18,6 @@ RSpec.configure do |config|
   config.after(:each) do
     DatabaseCleaner.clean
   end
+
+  config.include FactoryGirl::Syntax::Methods
 end

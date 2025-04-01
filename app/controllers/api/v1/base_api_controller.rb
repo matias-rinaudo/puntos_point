@@ -9,7 +9,7 @@ module Api
 
       def authenticate_request
         header = request.headers['Authorization']
-        Rails.logger.info "Extracted Token: #{header}"  # DEBUG
+        Rails.logger.info "Extracted Token: #{header}"
 
         if header.blank?
           Rails.logger.error 'Missing Authorization header'
@@ -17,7 +17,7 @@ module Api
         end
 
         token = header.split(' ').last
-        Rails.logger.info "Token: #{token}"  # DEBUG
+        Rails.logger.info "Token: #{token}"
 
         if token.blank?
           Rails.logger.error 'Token is missing'
@@ -25,7 +25,7 @@ module Api
         end
 
         decoded_token = JsonWebToken.decode(token)
-        Rails.logger.info "Decoded Token: #{decoded_token.inspect}"  # DEBUG
+        Rails.logger.info "Decoded Token: #{decoded_token.inspect}"
 
         if decoded_token.nil? || decoded_token['user_id'].nil?
           Rails.logger.error 'Invalid token or user_id missing'
@@ -40,6 +40,10 @@ module Api
           Rails.logger.error 'User not found for given token'
           render json: { error: 'Invalid token' }, status: :unauthorized and return
         end
+      end
+
+      def authorize_admin
+        render json: { error: "Unauthorized access" }, status: :unauthorized if @current_user.present? && !@current_user.admin?
       end
     end
   end
