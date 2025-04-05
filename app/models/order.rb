@@ -41,10 +41,8 @@ class Order < ActiveRecord::Base
     granularity = filters[:granularity]
 
     begin
-      strategy = PurchaseCountStrategy.build(granularity)
+      strategy = ::Orders::PurchaseCountStrategy.build(granularity)
       strategy.execute(orders)
-    rescue InvalidGranularityError => e
-      Rails.logger.warn "#{e.message}"
     rescue => e
       Rails.logger.warn "Unexpected error: #{e.message}"
     end
