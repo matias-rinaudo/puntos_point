@@ -1,10 +1,10 @@
 module Orders
   class PurchaseCountStrategy
     STRATEGIES = {
-      'day'  => PurchaseCountByDay,
-      'hour' => PurchaseCountByHour,
-      'week' => PurchaseCountByWeek,
-      'year' => PurchaseCountByYear
+      'day'  => ::Order::PurchaseCountByDay,
+      'hour' => ::Order::PurchaseCountByHour,
+      'week' => ::Order::PurchaseCountByWeek,
+      'year' => ::Order::PurchaseCountByYear
     }
 
     def self.build(granularity)
