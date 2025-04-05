@@ -1,18 +1,18 @@
 module Orders
   class PurchaseCountStrategy
+    STRATEGIES = {
+      'day'  => PurchaseCountByDay,
+      'hour' => PurchaseCountByHour,
+      'week' => PurchaseCountByWeek,
+      'year' => PurchaseCountByYear
+    }
+
     def self.build(granularity)
-      case granularity
-      when 'day'
-        PurchaseCountByDay.new
-      when 'hour'
-        PurchaseCountByHour.new
-      when 'week'
-        PurchaseCountByWeek.new
-      when 'year'
-        PurchaseCountByYear.new
-      else
-        raise "Unsupported granularity: #{granularity.inspect}"
-      end
+      strategy = STRATEGIES[granularity]
+
+      raise "Unsupported granularity: #{granularity.inspect}" unless strategy
+
+      strategy.new
     end
   end
 end
