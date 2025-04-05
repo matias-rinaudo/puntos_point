@@ -11,20 +11,39 @@ class Product < ActiveRecord::Base
 
   def self.top_purchased_by_category
     products = Rails.cache.fetch("top_purchased_by_category", expires_in: 12.hours) do
-      Product.joins(:orders, :categories)
-             .select('products.*, categories.id AS category_id, COUNT(orders.id) AS orders_count')
-             .group('products.id, categories.id')
-             .order('categories.id, COUNT(orders.id) DESC')
+      Product.joins(:categories, :orders)
+              .select('categories.id AS category_id, products.id AS product_id, products.name, COUNT(orders.id) AS order_count')
+              .group('categories.id, products.id, products.name')
+              .having('COUNT(orders.id) = (
+                SELECT MAX(order_counts.total)
+                FROM (
+                  SELECT COUNT(orders.id) AS total
+                  FROM products
+                  JOIN categories_products ON categories_products.product_id = products.id
+                  JOIN orders ON orders.product_id = products.id
+                  WHERE categories_products.category_id = categories.id
+                  GROUP BY products.id
+                ) AS order_counts
+              )')
     end
   end
 
   def self.top_revenue_by_category
     products = Rails.cache.fetch("top_revenue_by_category", expires_in: 12.hours) do
-      Product.joins(:orders, :categories)
-             .select('products.*, categories.id AS category_id, SUM(orders.total) AS total_revenue')
-             .group('products.id, categories.id')
-             .order('categories.id, total_revenue DESC')
-             .limit(3)
+      Product.joins(:categories, :orders)
+              .select('categories.id AS category_id, products.id AS product_id, products.name, SUM(orders.total) AS total_revenue')
+              .group('categories.id, products.id, products.name')
+              .having('(
+                SELECT COUNT(*) FROM (
+                  SELECT products.id, SUM(orders.total) AS revenue
+                  FROM products
+                  JOIN categories_products ON categories_products.product_id = products.id
+                  JOIN orders ON orders.product_id = products.id
+                  WHERE categories_products.category_id = categories.id
+                  GROUP BY products.id
+                  HAVING SUM(orders.total) > SUM(orders.total)
+                ) AS ranked
+              ) < 3')
     end
   end
 end
