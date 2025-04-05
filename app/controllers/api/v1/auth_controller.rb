@@ -1,6 +1,6 @@
 module Api
   module V1
-    class AuthController < ActionController::Base
+    class AuthController < Api::V1::BaseApiController
       def login
         user = User.find_by_email(params[:email])
 

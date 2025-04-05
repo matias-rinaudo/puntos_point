@@ -1,8 +1,6 @@
 module Api
   module V1
     class BaseApiController < ActionController::Base
-      before_filter :authenticate_request
-
       attr_reader :current_user
 
       private

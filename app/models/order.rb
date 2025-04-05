@@ -40,73 +40,14 @@ class Order < ActiveRecord::Base
     orders = self.filtered(filters)
     granularity = filters[:granularity]
 
-    case granularity
-    when 'day'
-      return purchase_count_by_day(orders)
-    when 'hour'
-      return purchase_count_by_hour(orders)
-    when 'week'
-      return purchase_count_by_week(orders)
-    when 'year'
-      return purchase_count_by_year(orders)
-    else
-      orders
+    begin
+      strategy = PurchaseCountStrategy.build(granularity)
+      strategy.execute(orders)
+    rescue InvalidGranularityError => e
+      Rails.logger.warn "#{e.message}"
+    rescue => e
+      Rails.logger.warn "Unexpected error: #{e.message}"
     end
-  end
-
-  def self.purchase_count_by_day(orders)
-    orders = orders
-      .select("DATE_TRUNC('day', orders.created_at) AS day, COUNT(*) AS count")
-      .group("DATE_TRUNC('day', orders.created_at)")
-      .order("day ASC")
-
-    result = {}
-    orders.each do |order|
-      day = order.day.to_date.strftime("%Y-%m-%d")
-      result[day] = order.count
-    end
-    result
-  end
-
-  def self.purchase_count_by_hour(orders)
-    orders = orders
-      .select("DATE_TRUNC('hour', orders.created_at) AS hour, COUNT(*) AS count")
-      .group("DATE_TRUNC('hour', orders.created_at)")
-      .order("DATE_TRUNC('hour', orders.created_at) ASC")
-
-    result = {}
-    orders.each do |order|
-      hour = order.hour.to_time.strftime("%Y-%m-%d %H:%M")
-      result[hour] = order.count
-    end
-    result
-  end
-
-  def self.purchase_count_by_week(orders)
-    orders = orders
-      .select("DATE_TRUNC('week', orders.created_at) AS week, COUNT(*) AS count")
-      .group("DATE_TRUNC('week', orders.created_at)")
-      .order("week ASC")
-
-    result = {}
-    orders.each do |order|
-      week_start = order.week.to_s.strip.to_time.strftime("%Y-%m-%d")
-      result[week_start] = order.count
-    end
-    result
-  end
-
-  def self.purchase_count_by_year(orders)
-    orders = orders
-      .select("EXTRACT(YEAR FROM orders.created_at) AS year, COUNT(*) AS count")
-      .group("EXTRACT(YEAR FROM orders.created_at)")
-      .order("year ASC")
-
-    result = {}
-    orders.each do |order|
-      result[order.year.to_s] = order.count
-    end
-    result
   end
 
   private
